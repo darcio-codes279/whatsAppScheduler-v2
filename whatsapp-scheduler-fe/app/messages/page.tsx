@@ -19,14 +19,14 @@ import {
   CheckCircle,
   AlertCircle,
   XCircle,
-  Eye,
   Edit,
   Trash2,
   Users,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  X
+  X,
+  Eye
 } from "lucide-react"
 import { useState, useMemo } from "react"
 
@@ -35,8 +35,18 @@ import { useState, useMemo } from "react"
 export default function MessagesPage() {
   const { isConnected, setShowQRModal, showQRModal } = useWhatsApp()
   const { messages, isLoading, error, deleteMessage } = useMessages()
-  const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [editingMessage, setEditingMessage] = useState<{
+    id: string
+    date: string
+    time: string
+    groupId: string
+    groupName: string
+    name: string
+    body: string
+    images: string[]
+  } | null>(null)
+  const [isSchedulePanelOpen, setIsSchedulePanelOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "scheduled" | "sent" | "failed" | "pending">("all")
   const [sortBy, setSortBy] = useState<"date" | "name" | "status" | "group">("date")
@@ -44,8 +54,9 @@ export default function MessagesPage() {
   const [showFilters, setShowFilters] = useState(false)
 
   const handleClosePanel = () => {
-    setIsPanelOpen(false)
+    setIsSchedulePanelOpen(false)
     setSelectedDate(null)
+    setEditingMessage(null)
   }
 
   const handleConnectionComplete = () => {
@@ -162,7 +173,7 @@ export default function MessagesPage() {
                 disabled={!isConnected}
                 onClick={() => {
                   setSelectedDate(new Date())
-                  setIsPanelOpen(true)
+                  setIsSchedulePanelOpen(true)
                 }}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -314,7 +325,7 @@ export default function MessagesPage() {
                     disabled={!isConnected}
                     onClick={() => {
                       setSelectedDate(new Date())
-                      setIsPanelOpen(true)
+                      setIsSchedulePanelOpen(true)
                     }}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -455,17 +466,25 @@ export default function MessagesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-muted-foreground hover:text-card-foreground h-8 w-8 p-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted-foreground hover:text-card-foreground h-8 w-8 p-0"
+                            className={`h-8 w-8 p-0 ${message.status === 'scheduled'
+                              ? 'text-muted-foreground hover:text-card-foreground cursor-pointer'
+                              : 'text-muted-foreground/50 cursor-not-allowed'
+                              }`}
+                            disabled={message.status !== 'scheduled'}
                             onClick={() => {
-                              // TODO: Implement edit functionality
-                              console.log('Edit message:', message.id)
+                              if (message.status === 'scheduled') {
+                                setEditingMessage({
+                                  id: message.id,
+                                  date: message.date,
+                                  time: message.time,
+                                  groupId: message.groupId,
+                                  groupName: message.groupName,
+                                  name: message.name,
+                                  body: message.body,
+                                  images: message.images
+                                })
+                                setIsSchedulePanelOpen(true)
+                              }
                             }}
                           >
                             <Edit className="h-4 w-4" />
@@ -500,17 +519,25 @@ export default function MessagesPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-muted-foreground hover:text-card-foreground h-8 w-8 p-0"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-card-foreground h-8 w-8 p-0"
+                              className={`h-8 w-8 p-0 ${message.status === 'scheduled'
+                                ? 'text-muted-foreground hover:text-card-foreground cursor-pointer'
+                                : 'text-muted-foreground/50 cursor-not-allowed'
+                                }`}
+                              disabled={message.status !== 'scheduled'}
                               onClick={() => {
-                                // TODO: Implement edit functionality
-                                console.log('Edit message:', message.id)
+                                if (message.status === 'scheduled') {
+                                  setEditingMessage({
+                                    id: message.id,
+                                    date: message.date,
+                                    time: message.time,
+                                    groupId: message.groupId,
+                                    groupName: message.groupName,
+                                    name: message.name,
+                                    body: message.body,
+                                    images: message.images
+                                  })
+                                  setIsSchedulePanelOpen(true)
+                                }
                               }}
                             >
                               <Edit className="h-4 w-4" />
@@ -588,7 +615,15 @@ export default function MessagesPage() {
 
       {/* Message Schedule Panel */}
       {isConnected && (
-        <MessageSchedulePanel isOpen={isPanelOpen} onClose={handleClosePanel} selectedDate={selectedDate} />
+        <MessageSchedulePanel
+          isOpen={isSchedulePanelOpen}
+          onClose={() => {
+            setIsSchedulePanelOpen(false)
+            setEditingMessage(null)
+          }}
+          selectedDate={selectedDate}
+          editingMessage={editingMessage}
+        />
       )}
     </div>
   )

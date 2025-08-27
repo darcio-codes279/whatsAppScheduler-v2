@@ -9,11 +9,13 @@ import { WhatsAppQRModal } from "@/components/whatsapp-qr-modal"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageSquare } from "lucide-react"
+import { ScheduledMessage } from "@/contexts/messages-context"
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const { isConnected, setIsConnected, showQRModal, setShowQRModal } = useWhatsApp()
+  const [editingMessage, setEditingMessage] = useState<ScheduledMessage | null>(null)
+  const { isConnected, showQRModal, setShowQRModal } = useWhatsApp()
 
   const handleDateClick = (date: Date) => {
     if (!isConnected) {
@@ -27,10 +29,16 @@ export default function CalendarPage() {
   const handleClosePanel = () => {
     setIsPanelOpen(false)
     setSelectedDate(null)
+    setEditingMessage(null)
+  }
+
+  const handleMessageEdit = (message: ScheduledMessage) => {
+    setEditingMessage(message)
+    setSelectedDate(null)
+    setIsPanelOpen(true)
   }
 
   const handleConnectionComplete = () => {
-    setIsConnected(true)
     setShowQRModal(false)
   }
 
@@ -64,13 +72,18 @@ export default function CalendarPage() {
             </Card>
           ) : (
             /* Calendar Component */
-            <Calendar onDateClick={handleDateClick} />
+            <Calendar onDateClick={handleDateClick} onMessageEdit={handleMessageEdit} />
           )}
         </div>
 
         {/* Slide-out Panel */}
         {isConnected && (
-          <MessageSchedulePanel isOpen={isPanelOpen} onClose={handleClosePanel} selectedDate={selectedDate} />
+          <MessageSchedulePanel
+            isOpen={isPanelOpen}
+            onClose={handleClosePanel}
+            selectedDate={selectedDate}
+            editingMessage={editingMessage}
+          />
         )}
 
         {/* WhatsApp QR Modal */}

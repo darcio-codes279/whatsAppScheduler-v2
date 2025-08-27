@@ -19,9 +19,19 @@ interface MessageSchedulePanelProps {
   isOpen: boolean
   onClose: () => void
   selectedDate: Date | null
+  editingMessage?: {
+    id: string
+    date: string
+    time: string
+    groupId: string
+    groupName: string
+    name: string
+    body: string
+    images: string[]
+  } | null
 }
 
-export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageSchedulePanelProps) {
+export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMessage }: MessageSchedulePanelProps) {
   const [messageName, setMessageName] = useState("")
   const [messageBody, setMessageBody] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("")
@@ -30,13 +40,38 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageS
   const [isScheduling, setIsScheduling] = useState(false)
   const [messageType, setMessageType] = useState<'instant' | 'scheduled'>('instant')
   const [internalSelectedDate, setInternalSelectedDate] = useState<Date | null>(selectedDate)
+  const [isEditing, setIsEditing] = useState(false)
 
   // Update internal date when selectedDate prop changes
   useEffect(() => {
     setInternalSelectedDate(selectedDate)
   }, [selectedDate])
 
-  const { addMessage } = useMessages()
+  // Populate form when editing a message
+  useEffect(() => {
+    if (editingMessage) {
+      setIsEditing(true)
+      setMessageName(editingMessage.name)
+      setMessageBody(editingMessage.body)
+      setSelectedGroup(editingMessage.groupId)
+      setSelectedTime(editingMessage.time)
+      setMessageType('scheduled') // Editing is only for scheduled messages
+      setInternalSelectedDate(new Date(editingMessage.date))
+      setUploadedImages([]) // Reset images for now
+    } else {
+      setIsEditing(false)
+      // Reset form when not editing
+      setMessageName("")
+      setMessageBody("")
+      setSelectedGroup("")
+      setSelectedTime("")
+      setUploadedImages([])
+      setMessageType('instant')
+      setInternalSelectedDate(selectedDate)
+    }
+  }, [editingMessage, selectedDate])
+
+  const { addMessage, updateMessage } = useMessages()
   const { groups, isConnected, isReady } = useWhatsApp()
 
   const formatDate = (date: Date | null) => {
@@ -74,7 +109,25 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageS
     try {
       const selectedGroupData = groups.find((g) => g.id === selectedGroup)
 
-      if (messageType === 'instant') {
+      if (isEditing && editingMessage) {
+        // Update existing message
+        const success = await updateMessage(editingMessage.id, {
+          date: internalSelectedDate!.toISOString().split("T")[0], // YYYY-MM-DD format
+          time: selectedTime,
+          groupId: selectedGroup,
+          groupName: selectedGroupData?.name || "Unknown Group",
+          name: messageName,
+          body: messageBody,
+          images: uploadedImages.map(file => URL.createObjectURL(file)), // Convert files to URLs for now
+        })
+
+        if (success) {
+          toast.success(`Message updated successfully!`)
+        } else {
+          toast.error('Failed to update message')
+          return
+        }
+      } else if (messageType === 'instant') {
         // Send instant message via API
         const result = await apiService.sendMessage({
           groupName: selectedGroupData?.name || "Unknown Group",
@@ -117,10 +170,11 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageS
       setUploadedImages([])
       setMessageType('instant')
       setInternalSelectedDate(null)
+      setIsEditing(false)
       onClose()
     } catch (error) {
       console.error('Failed to process message:', error)
-      toast.error(messageType === 'instant' ? 'Failed to send message' : 'Failed to schedule message')
+      toast.error(isEditing ? 'Failed to update message' : (messageType === 'instant' ? 'Failed to send message' : 'Failed to schedule message'))
     } finally {
       setIsScheduling(false)
     }
@@ -137,7 +191,7 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageS
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold text-card-foreground">
-            {messageType === 'instant' ? 'Send Message' : 'Schedule Message'}
+            {isEditing ? 'Edit Message' : (messageType === 'instant' ? 'Send Message' : 'Schedule Message')}
           </h2>
           <Button
             variant="ghost"
@@ -151,33 +205,35 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageS
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Message Type Toggle */}
-          <div className="space-y-2">
-            <Label className="text-card-foreground">Message Type</Label>
-            <div className="flex space-x-2">
-              <Button
-                variant={messageType === 'instant' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setMessageType('instant')}
-                className="flex-1"
-              >
-                <Zap className="mr-2 h-4 w-4" />
-                Send Now
-              </Button>
-              <Button
-                variant={messageType === 'scheduled' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setMessageType('scheduled')}
-                className="flex-1"
-              >
-                <Clock className="mr-2 h-4 w-4" />
-                Schedule
-              </Button>
+          {/* Message Type Toggle - Hide when editing */}
+          {!isEditing && (
+            <div className="space-y-2">
+              <Label className="text-card-foreground">Message Type</Label>
+              <div className="flex space-x-2">
+                <Button
+                  variant={messageType === 'instant' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setMessageType('instant')}
+                  className="flex-1"
+                >
+                  <Zap className="mr-2 h-4 w-4" />
+                  Send Now
+                </Button>
+                <Button
+                  variant={messageType === 'scheduled' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setMessageType('scheduled')}
+                  className="flex-1"
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Schedule
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Date Selection - Only for scheduled messages */}
-          {messageType === 'scheduled' && (
+          {/* Date Selection - Only for scheduled messages or editing */}
+          {(messageType === 'scheduled' || isEditing) && (
             <div className="space-y-2">
               <Label htmlFor="date" className="text-card-foreground">
                 Date
@@ -196,8 +252,8 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageS
             </div>
           )}
 
-          {/* Time Selection - Only for scheduled messages */}
-          {messageType === 'scheduled' && (
+          {/* Time Selection - Only for scheduled messages or editing */}
+          {(messageType === 'scheduled' || isEditing) && (
             <div className="space-y-2">
               <Label htmlFor="time" className="text-card-foreground">
                 Time
@@ -369,15 +425,15 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate }: MessageS
               !selectedGroup ||
               !messageName ||
               !messageBody ||
-              (messageType === 'scheduled' && (!selectedDate || !selectedTime)) ||
+              ((messageType === 'scheduled' || isEditing) && (!internalSelectedDate || !selectedTime)) ||
               isScheduling
             }
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Send className="mr-2 h-4 w-4" />
             {isScheduling
-              ? (messageType === 'instant' ? "Sending..." : "Scheduling...")
-              : (messageType === 'instant' ? "Send Message" : "Schedule Message")
+              ? (isEditing ? "Updating..." : (messageType === 'instant' ? "Sending..." : "Scheduling..."))
+              : (isEditing ? "Update Message" : (messageType === 'instant' ? "Send Message" : "Schedule Message"))
             }
           </Button>
         </div>

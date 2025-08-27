@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Calendar, LayoutDashboard, Settings, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Calendar, LayoutDashboard, Settings, MessageSquare, ChevronLeft, ChevronRight, User, LogOut } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
+// import { useAuth } from "@/contexts/auth-context"
 
 const navigationItems = [
   {
@@ -34,6 +37,7 @@ const navigationItems = [
 export function Navigation() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
+  // const { user, profile, signOut } = useAuth()
 
   // Load collapse state from localStorage on mount
   useEffect(() => {
@@ -110,6 +114,87 @@ export function Navigation() {
 
       {/* Footer */}
       <div className="p-4 border-t border-sidebar-border">
+        {/* User Menu - Commented out for testing */}
+        {/* <div className={cn("mb-4", isCollapsed ? "flex justify-center" : "")}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "h-10 transition-all duration-200 hover:bg-sidebar-accent",
+                  isCollapsed ? "w-10 p-0" : "w-full justify-start px-3"
+                )}
+              >
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={profile?.avatarUrl} />
+                  <AvatarFallback className="text-xs">
+                    {profile?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                {!isCollapsed && (
+                  <div className="ml-3 flex-1 text-left">
+                    <div className="text-sm font-medium text-sidebar-foreground truncate">
+                      {profile?.firstName && profile?.lastName
+                        ? `${profile.firstName} ${profile.lastName}`
+                        : user?.email
+                      }
+                    </div>
+                    <div className="text-xs text-sidebar-foreground/60 truncate">
+                      {user?.email}
+                    </div>
+                  </div>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={signOut}
+                className="text-destructive focus:text-destructive"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div> */}
+
+        {/* Simple placeholder for testing */}
+        <div className={cn("mb-4", isCollapsed ? "flex justify-center" : "")}>
+          <div className={cn(
+            "flex items-center transition-all duration-200",
+            isCollapsed ? "justify-center" : "px-3"
+          )}>
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="text-xs">U</AvatarFallback>
+            </Avatar>
+            {!isCollapsed && (
+              <div className="ml-3 flex-1 text-left">
+                <div className="text-sm font-medium text-sidebar-foreground">
+                  Test User
+                </div>
+                <div className="text-xs text-sidebar-foreground/60">
+                  test@example.com
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {isCollapsed && (
           <div className="flex justify-center mb-3">
             <ThemeToggle />

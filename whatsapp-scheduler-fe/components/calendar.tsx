@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronLeft, ChevronRight, Plus, CalendarIcon, Clock } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, CalendarIcon, Clock, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -10,6 +10,7 @@ import { useMessages } from "@/contexts/messages-context"
 
 interface CalendarProps {
   onDateClick: (date: Date) => void
+  onMessageEdit?: (message: any) => void
 }
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -28,7 +29,7 @@ const MONTHS = [
   "December",
 ]
 
-export function Calendar({ onDateClick }: CalendarProps) {
+export function Calendar({ onDateClick, onMessageEdit }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<"Month" | "Week" | "Day">("Month")
   const { getMessagesByDate, getFilteredMessages } = useMessages()
@@ -100,12 +101,23 @@ export function Calendar({ onDateClick }: CalendarProps) {
             </div>
 
             <div className="flex-1 p-4 lg:p-6">
+              {upcomingEvents.length > 0 && (
+                <div className="flex justify-end mb-2">
+                  <div className="relative group">
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                      Click the event below to edit upcoming message
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-popover"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Upcoming Messages</h3>
                 <span className="text-sm text-muted-foreground">{upcomingEvents.length} Messages</span>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {upcomingEvents.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -115,7 +127,24 @@ export function Calendar({ onDateClick }: CalendarProps) {
                   upcomingEvents.map((event) => (
                     <div
                       key={event.id}
-                      className="flex items-start space-x-3 p-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                      className={`flex items-start space-x-3 p-3 rounded-lg transition-colors ${event.status === 'scheduled'
+                        ? 'hover:bg-accent/50 cursor-pointer'
+                        : 'cursor-default opacity-75'
+                        }`}
+                      onClick={() => {
+                        if (event.status === 'scheduled' && onMessageEdit) {
+                          onMessageEdit({
+                            id: event.id,
+                            date: event.date,
+                            time: event.time,
+                            groupId: event.groupId,
+                            groupName: event.groupName,
+                            name: event.name,
+                            body: event.body,
+                            images: event.images || []
+                          })
+                        }
+                      }}
                     >
                       <div className={cn("w-3 h-3 rounded-full mt-1 flex-shrink-0", getStatusColor(event.status))} />
                       <div className="flex-1 min-w-0">

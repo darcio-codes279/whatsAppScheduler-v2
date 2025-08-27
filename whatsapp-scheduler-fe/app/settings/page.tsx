@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { Navigation } from "@/components/navigation"
+// import { ProtectedRoute } from "@/components/auth/protected-route"
+import { UserProfile } from "@/components/auth/user-profile"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +19,14 @@ import { useWhatsApp } from "@/contexts/whatsapp-context"
 import { useTheme } from "next-themes"
 
 export default function SettingsPage() {
+  return (
+    // <ProtectedRoute>
+    <SettingsContent />
+    // </ProtectedRoute>
+  )
+}
+
+function SettingsContent() {
   const { isConnected, setShowQRModal } = useWhatsApp()
   const { theme, setTheme } = useTheme()
 
@@ -72,103 +82,31 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-8">
-            {/* Profile Section */}
-            <Card className="bg-card border-border">
+            {/* User Profile Section */}
+            {/* <UserProfile /> */}
+            <Card>
               <CardHeader>
-                <CardTitle className="text-card-foreground flex items-center">
-                  <User className="mr-2 h-5 w-5" />
-                  Profile Information
-                </CardTitle>
-                <CardDescription>Update your personal information and profile details</CardDescription>
+                <CardTitle>Profile Settings</CardTitle>
+                <CardDescription>
+                  Manage your account information and preferences
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Avatar Section */}
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src="/generic-user-avatar.png" />
-                    <AvatarFallback className="text-lg">JD</AvatarFallback>
-                  </Avatar>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Photo
-                    </Button>
-                    <Button variant="outline" size="sm" className="border-border hover:bg-accent bg-transparent">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Remove
-                    </Button>
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input id="firstName" placeholder="Enter your first name" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input id="lastName" placeholder="Enter your last name" />
                   </div>
                 </div>
-
-                {/* Profile Form */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-card-foreground">
-                      Full Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={profile.name}
-                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      className="bg-input border-border text-card-foreground"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-card-foreground">
-                      Email Address
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profile.email}
-                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      className="bg-input border-border text-card-foreground"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-card-foreground">
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                      className="bg-input border-border text-card-foreground"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company" className="text-card-foreground">
-                      Company
-                    </Label>
-                    <Input
-                      id="company"
-                      value={profile.company}
-                      onChange={(e) => setProfile({ ...profile, company: e.target.value })}
-                      className="bg-input border-border text-card-foreground"
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-card-foreground">
-                    Bio
-                  </Label>
-                  <Textarea
-                    id="bio"
-                    value={profile.bio}
-                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                    className="bg-input border-border text-card-foreground resize-none"
-                    rows={3}
-                  />
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="Enter your email" />
                 </div>
-
-                <Button
-                  onClick={handleProfileUpdate}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Profile
-                </Button>
+                <Button>Save Changes</Button>
               </CardContent>
             </Card>
 

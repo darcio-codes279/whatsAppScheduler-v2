@@ -1,6 +1,7 @@
 "use client"
 
 import { Navigation } from "@/components/navigation"
+// import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useWhatsApp } from "@/contexts/whatsapp-context"
 import { useMessages } from "@/contexts/messages-context"
 import { WhatsAppQRModal } from "@/components/whatsapp-qr-modal"
@@ -34,6 +35,14 @@ import toast from "react-hot-toast"
 import type { ScheduledMessage } from "@/contexts/messages-context"
 
 export default function DashboardPage() {
+  return (
+    // <ProtectedRoute>
+    <DashboardContent />
+    // </ProtectedRoute>
+  )
+}
+
+function DashboardContent() {
   const { isConnected, isReady, showQRModal, setShowQRModal, groups, clientInfo } = useWhatsApp()
   const { messages } = useMessages()
   const [isPanelOpen, setIsPanelOpen] = useState(false)
@@ -145,7 +154,7 @@ export default function DashboardPage() {
         <div className="p-6">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
             <p className="text-muted-foreground">
               {isConnected
                 ? "Monitor and manage your WhatsApp scheduling operations"
@@ -523,7 +532,7 @@ export default function DashboardPage() {
                 <CardDescription>Pre-built message templates for quick reuse</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="max-h-80 overflow-y-auto space-y-4">
                   {[
                     {
                       id: 1,
@@ -554,6 +563,24 @@ export default function DashboardPage() {
                       title: "Appointment Confirmation",
                       content: "Your appointment has been confirmed for [DATE] at [TIME]. Please arrive 10 minutes early. If you need to reschedule, please let us know 24 hours in advance.",
                       category: "Appointments"
+                    },
+                    {
+                      id: 6,
+                      title: "Payment Reminder",
+                      content: "This is a friendly reminder that your payment of [AMOUNT] is due on [DATE]. Please ensure payment is made to avoid any service interruption.",
+                      category: "Finance"
+                    },
+                    {
+                      id: 7,
+                      title: "Thank You Message",
+                      content: "Thank you for choosing our services! Your satisfaction is our priority. We appreciate your business and look forward to serving you again.",
+                      category: "Customer Service"
+                    },
+                    {
+                      id: 8,
+                      title: "Holiday Greeting",
+                      content: "Wishing you and your loved ones a wonderful [HOLIDAY]! May this special time bring you joy, peace, and happiness.",
+                      category: "Seasonal"
                     }
                   ].map((template) => {
                     const handleCopyTemplate = async (content: string) => {
@@ -572,6 +599,9 @@ export default function DashboardPage() {
                         case 'Events': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                         case 'Welcome': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                         case 'Appointments': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                        case 'Finance': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        case 'Customer Service': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200'
+                        case 'Seasonal': return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200'
                         default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
                       }
                     }
@@ -604,12 +634,11 @@ export default function DashboardPage() {
                       </div>
                     )
                   })}
-
-                  <div className="pt-2 border-t border-border">
-                    <p className="text-xs text-muted-foreground text-center">
-                      Click the copy icon to copy any template to your clipboard. Replace [PLACEHOLDERS] with actual values.
-                    </p>
-                  </div>
+                </div>
+                <div className="pt-1 border-t border-border">
+                  <p className="text-xs text-muted-foreground text-center">
+                    Click the copy icon to copy any template to your clipboard. Replace [PLACEHOLDERS] with actual values.
+                  </p>
                 </div>
               </CardContent>
             </Card>
