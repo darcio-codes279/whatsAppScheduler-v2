@@ -4,40 +4,40 @@
 :root {
   --font-sans: '__GeistSans_fb8f2c';
   --font-mono: '__GeistMono_f910ec';
-  --background: oklch(0.965 0.008 25); /* F6F0F0 - Light warm background */
-  --foreground: oklch(0.25 0 0); /* Dark text */
-  --card: oklch(0.92 0.03 65); /* F2E2B1 - Light cream cards */
-  --card-foreground: oklch(0.25 0 0);
-  --popover: oklch(0.92 0.03 65);
-  --popover-foreground: oklch(0.25 0 0);
-  /* WhatsApp green for primary and accent */
-  --primary: oklch(0.65 0.15 150); /* WhatsApp green primary */
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.82 0.02 55); /* D5C7A3 - Medium beige secondary */
-  --secondary-foreground: oklch(0.25 0 0);
-  --muted: oklch(0.75 0.02 50); /* BDB395 - Darker beige muted */
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.55 0.12 165); /* WhatsApp dark green accent */
-  --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.55 0.25 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.82 0.02 55);
-  --input: oklch(0.92 0.03 65);
-  --ring: oklch(0.65 0.15 150);
-  --chart-1: oklch(0.65 0.15 150);
-  --chart-2: oklch(0.55 0.12 165);
-  --chart-3: oklch(0.45 0.1 175);
-  --chart-4: oklch(0.7 0.15 220);
-  --chart-5: oklch(0.9 0.01 60);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.92 0.03 65); /* Light cream sidebar */
-  --sidebar-foreground: oklch(0.25 0 0);
-  --sidebar-primary: oklch(0.65 0.15 150);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.82 0.02 55);
-  --sidebar-accent-foreground: oklch(0.25 0 0);
-  --sidebar-border: oklch(0.82 0.02 55);
-  --sidebar-ring: oklch(0.65 0.15 150);
+  --background: oklch(0.98 0.008 45); /* Warm white with subtle cream tint */
+  --foreground: oklch(0.15 0.02 30); /* Deep warm gray text */
+  --card: oklch(0.96 0.015 40); /* Light warm cream cards */
+  --card-foreground: oklch(0.15 0.02 30);
+  --popover: oklch(0.98 0.008 45);
+  --popover-foreground: oklch(0.15 0.02 30);
+  /* Modern green primary with WhatsApp green accent */
+  --primary: oklch(0.55 0.18 150); /* Modern green primary */
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.92 0.02 50); /* Light warm beige secondary */
+  --secondary-foreground: oklch(0.25 0.02 30);
+  --muted: oklch(0.88 0.025 45); /* Muted warm cream */
+  --muted-foreground: oklch(0.45 0.02 35);
+  --accent: oklch(0.65 0.15 150); /* WhatsApp green accent for actions */
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.6 0.22 15); /* Modern red */
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.9 0.02 50); /* Subtle warm beige border */
+  --input: oklch(0.96 0.015 40);
+  --ring: oklch(0.55 0.18 150); /* Green focus ring */
+  --chart-1: oklch(0.55 0.18 150); /* Green */
+  --chart-2: oklch(0.65 0.15 150); /* Green */
+  --chart-3: oklch(0.6 0.2 300); /* Purple */
+  --chart-4: oklch(0.65 0.2 60); /* Orange */
+  --chart-5: oklch(0.7 0.15 180); /* Cyan */
+  --radius: 0.75rem; /* Slightly more rounded for modern look */
+  --sidebar: oklch(0.94 0.02 45); /* Light warm cream sidebar */
+  --sidebar-foreground: oklch(0.15 0.02 30);
+  --sidebar-primary: oklch(0.55 0.18 150);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.88 0.025 40);
+  --sidebar-accent-foreground: oklch(0.25 0.02 30);
+  --sidebar-border: oklch(0.9 0.02 50);
+  --sidebar-ring: oklch(0.55 0.18 150);
 }
 
 .dark {
