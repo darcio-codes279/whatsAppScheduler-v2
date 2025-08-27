@@ -46,6 +46,7 @@ function DashboardContent() {
   const { isConnected, isReady, showQRModal, setShowQRModal, groups, clientInfo } = useWhatsApp()
   const { messages } = useMessages()
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [initialMessageType, setInitialMessageType] = useState<'instant' | 'scheduled'>('instant')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const router = useRouter()
 
@@ -326,7 +327,7 @@ function DashboardContent() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className={`w-2 h-2 rounded-full ${isConnected && isReady ? 'bg-green-500' : isConnected ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
-                      <span className="text-sm text-card-foreground">WhatsApp API</span>
+                      <span className="text-sm text-card-foreground">WhatsApp Connection</span>
                     </div>
                     <Badge
                       variant="secondary"
@@ -335,28 +336,60 @@ function DashboardContent() {
                       {isConnected && isReady ? 'Online' : isConnected ? 'Connecting' : 'Offline'}
                     </Badge>
                   </div>
+
+                  {/* WhatsApp Client Info */}
+                  {isConnected && clientInfo && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-sm text-card-foreground">Connected Account</span>
+                        </div>
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                        >
+                          {clientInfo.pushname || 'Unknown'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-card-foreground">Phone Number</span>
+                        </div>
+                        <Badge
+                          variant="secondary"
+                          className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                        >
+                          +{clientInfo.wid?.user || 'Unknown'}
+                        </Badge>
+                      </div>
+
+                    </>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-card-foreground">Message Queue</span>
+                      <span className="text-sm text-card-foreground">Database Connection</span>
                     </div>
                     <Badge
                       variant="secondary"
                       className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                     >
-                      Healthy
+                      Connected
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                      <span className="text-sm text-card-foreground">Database</span>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm text-card-foreground">Scheduler Service</span>
                     </div>
                     <Badge
                       variant="secondary"
-                      className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                      className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                     >
-                      Slow
+                      Running
                     </Badge>
                   </div>
                 </div>
@@ -407,12 +440,13 @@ function DashboardContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   <Button
                     className="h-12 bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={!isConnected}
                     onClick={() => {
                       setSelectedDate(new Date())
+                      setInitialMessageType('instant')
                       setIsPanelOpen(true)
                     }}
                   >
@@ -421,23 +455,21 @@ function DashboardContent() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-12 border-border text-card-foreground hover:bg-accent hover:text-accent-foreground bg-transparent"
+                    className="h-12 border-border text-card-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 bg-transparent transition-colors"
                     disabled={!isConnected}
+                    onClick={() => {
+                      setSelectedDate(new Date())
+                      setInitialMessageType('scheduled')
+                      setIsPanelOpen(true)
+                    }}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
                     Schedule
                   </Button>
+
                   <Button
                     variant="outline"
-                    className="h-12 border-border text-card-foreground hover:bg-accent hover:text-accent-foreground bg-transparent"
-                    disabled={!isConnected}
-                  >
-                    <Users className="mr-2 h-4 w-4" />
-                    Groups
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-12 border-border text-card-foreground hover:bg-accent hover:text-accent-foreground bg-transparent"
+                    className="h-12 border-border text-card-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 bg-transparent transition-colors"
                   >
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
@@ -730,7 +762,7 @@ function DashboardContent() {
 
       {/* Message Schedule Panel */}
       {isConnected && (
-        <MessageSchedulePanel isOpen={isPanelOpen} onClose={handleClosePanel} selectedDate={selectedDate} />
+        <MessageSchedulePanel isOpen={isPanelOpen} onClose={handleClosePanel} selectedDate={selectedDate} initialMessageType={initialMessageType} />
       )}
     </div>
   )

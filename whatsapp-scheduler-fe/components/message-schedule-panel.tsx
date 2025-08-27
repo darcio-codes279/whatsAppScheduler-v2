@@ -19,6 +19,7 @@ interface MessageSchedulePanelProps {
   isOpen: boolean
   onClose: () => void
   selectedDate: Date | null
+  initialMessageType?: 'instant' | 'scheduled'
   editingMessage?: {
     id: string
     date: string
@@ -31,14 +32,14 @@ interface MessageSchedulePanelProps {
   } | null
 }
 
-export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMessage }: MessageSchedulePanelProps) {
+export function MessageSchedulePanel({ isOpen, onClose, selectedDate, initialMessageType = 'instant', editingMessage }: MessageSchedulePanelProps) {
   const [messageName, setMessageName] = useState("")
   const [messageBody, setMessageBody] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("")
   const [selectedTime, setSelectedTime] = useState("")
   const [uploadedImages, setUploadedImages] = useState<File[]>([])
   const [isScheduling, setIsScheduling] = useState(false)
-  const [messageType, setMessageType] = useState<'instant' | 'scheduled'>('instant')
+  const [messageType, setMessageType] = useState<'instant' | 'scheduled'>(initialMessageType)
   const [internalSelectedDate, setInternalSelectedDate] = useState<Date | null>(selectedDate)
   const [isEditing, setIsEditing] = useState(false)
 
@@ -66,7 +67,7 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMes
       setSelectedGroup("")
       setSelectedTime("")
       setUploadedImages([])
-      setMessageType('instant')
+      setMessageType(initialMessageType)
       setInternalSelectedDate(selectedDate)
     }
   }, [editingMessage, selectedDate])
@@ -82,6 +83,15 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMes
       month: "long",
       day: "numeric",
     })
+  }
+
+  // Helper function to format date without timezone conversion
+  const formatDateForInput = (date: Date | null) => {
+    if (!date) return ""
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +122,7 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMes
       if (isEditing && editingMessage) {
         // Update existing message
         const success = await updateMessage(editingMessage.id, {
-          date: internalSelectedDate!.toISOString().split("T")[0], // YYYY-MM-DD format
+          date: formatDateForInput(internalSelectedDate!), // YYYY-MM-DD format
           time: selectedTime,
           groupId: selectedGroup,
           groupName: selectedGroupData?.name || "Unknown Group",
@@ -145,7 +155,7 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMes
       } else {
         // Schedule the message
         const success = await addMessage({
-          date: internalSelectedDate!.toISOString().split("T")[0], // YYYY-MM-DD format
+          date: formatDateForInput(internalSelectedDate!), // YYYY-MM-DD format
           time: selectedTime,
           groupId: selectedGroup,
           groupName: selectedGroupData?.name || "Unknown Group",
@@ -168,7 +178,7 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMes
       setSelectedGroup("")
       setSelectedTime("")
       setUploadedImages([])
-      setMessageType('instant')
+      setMessageType(initialMessageType)
       setInternalSelectedDate(null)
       setIsEditing(false)
       onClose()
@@ -241,8 +251,8 @@ export function MessageSchedulePanel({ isOpen, onClose, selectedDate, editingMes
               <Input
                 id="date"
                 type="date"
-                value={internalSelectedDate ? internalSelectedDate.toISOString().split('T')[0] : ''}
-                min={new Date().toISOString().split('T')[0]}
+                value={formatDateForInput(internalSelectedDate)}
+                min={formatDateForInput(new Date())}
                 onChange={(e) => {
                   const newDate = e.target.value ? new Date(e.target.value) : null
                   setInternalSelectedDate(newDate)

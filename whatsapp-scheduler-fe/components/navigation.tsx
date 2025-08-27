@@ -95,8 +95,8 @@ export function Navigation() {
                   <Button
                     variant={isActive ? "default" : "ghost"}
                     className={cn(
-                      "w-full justify-start h-10 transition-all duration-200",
-                      isCollapsed ? "px-2" : "px-3",
+                      "w-full h-10 transition-all duration-200",
+                      isCollapsed ? "justify-center px-2" : "justify-start px-3",
                       isActive
                         ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

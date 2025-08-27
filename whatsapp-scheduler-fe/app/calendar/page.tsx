@@ -83,6 +83,7 @@ export default function CalendarPage() {
             onClose={handleClosePanel}
             selectedDate={selectedDate}
             editingMessage={editingMessage}
+            initialMessageType="scheduled"
           />
         )}
 
