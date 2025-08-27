@@ -22,10 +22,15 @@ import {
   Zap,
   Globe,
   Settings,
+  MessageCircle,
+  Timer,
+  FileText,
+  Copy,
 } from "lucide-react"
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import toast from "react-hot-toast"
 import type { ScheduledMessage } from "@/contexts/messages-context"
 
 export default function DashboardPage() {
@@ -93,13 +98,37 @@ export default function DashboardPage() {
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, 5) // Show only last 5 activities
 
+    // Calculate response analytics
+    const sentMessages = messages.filter(msg => msg.status === 'sent')
+    const messagesWithResponses = sentMessages.filter(msg => msg.responseCount && msg.responseCount > 0)
+    const responseRate = sentMessages.length > 0 ? Math.round((messagesWithResponses.length / sentMessages.length) * 100) : 0
+
+    // Calculate average response time
+    const responseTimes = messagesWithResponses
+      .filter(msg => msg.responseTimeMs && msg.responseTimeMs > 0)
+      .map(msg => msg.responseTimeMs!)
+
+    const avgResponseTime = responseTimes.length > 0
+      ? responseTimes.reduce((sum: number, time: number) => sum + time, 0) / responseTimes.length
+      : 0
+
+    // Format average response time
+    const formatResponseTime = (ms: number): string => {
+      if (ms < 60000) return `${Math.round(ms / 1000)}s`
+      if (ms < 3600000) return `${Math.round(ms / 60000)}m`
+      return `${Math.round(ms / 3600000)}h`
+    }
+
     return {
       totalMessages,
       pendingMessages,
       successRate,
       activeGroups: groups.length,
       upcomingMessages,
-      recentActivity
+      recentActivity,
+      responseRate,
+      avgResponseTime: formatResponseTime(avgResponseTime),
+      totalResponses: messagesWithResponses.reduce((sum, msg) => sum + (msg.responseCount || 0), 0)
     }
   }, [messages, groups])
 
@@ -194,6 +223,29 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold text-card-foreground">{stats.pendingMessages}</div>
                 <p className="text-xs text-muted-foreground">{stats.pendingMessages > 0 ? 'Scheduled messages' : 'No pending messages'}</p>
+              </CardContent>
+            </Card>
+
+            {/* Response Analytics Cards */}
+            <Card className="bg-card border-border">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-card-foreground">Response Rate</CardTitle>
+                <MessageCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-card-foreground">{stats.responseRate}%</div>
+                <p className="text-xs text-muted-foreground">Messages with responses</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border-border">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-card-foreground">Avg Response Time</CardTitle>
+                <Timer className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-card-foreground">{stats.avgResponseTime}</div>
+                <p className="text-xs text-muted-foreground">First response speed</p>
               </CardContent>
             </Card>
 
@@ -303,7 +355,7 @@ export default function DashboardPage() {
             </Card>
 
             {/* Performance Metrics */}
-            <Card className="lg:col-span-2 bg-card border-border">
+            {/* <Card className="lg:col-span-2 bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-card-foreground flex items-center">
                   <BarChart3 className="mr-2 h-5 w-5" />
@@ -335,7 +387,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Quick Actions */}
             <Card className="md:col-span-2 bg-card border-border">
@@ -461,8 +513,109 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Analytics Summary */}
+            {/* Message Templates */}
             <Card className="lg:col-span-3 bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-card-foreground flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Message Templates
+                </CardTitle>
+                <CardDescription>Pre-built message templates for quick reuse</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    {
+                      id: 1,
+                      title: "Meeting Reminder",
+                      content: "Hi! This is a friendly reminder about our meeting scheduled for [TIME] today. Looking forward to speaking with you!",
+                      category: "Business"
+                    },
+                    {
+                      id: 2,
+                      title: "Follow-up Message",
+                      content: "Thank you for your time today! As discussed, I'm sending you the information we talked about. Please let me know if you have any questions.",
+                      category: "Business"
+                    },
+                    {
+                      id: 3,
+                      title: "Event Invitation",
+                      content: "You're invited to [EVENT NAME] on [DATE] at [TIME]. We'd love to have you join us! Please RSVP by [RSVP DATE].",
+                      category: "Events"
+                    },
+                    {
+                      id: 4,
+                      title: "Welcome Message",
+                      content: "Welcome to our community! We're excited to have you on board. Feel free to reach out if you have any questions or need assistance.",
+                      category: "Welcome"
+                    },
+                    {
+                      id: 5,
+                      title: "Appointment Confirmation",
+                      content: "Your appointment has been confirmed for [DATE] at [TIME]. Please arrive 10 minutes early. If you need to reschedule, please let us know 24 hours in advance.",
+                      category: "Appointments"
+                    }
+                  ].map((template) => {
+                    const handleCopyTemplate = async (content: string) => {
+                      try {
+                        await navigator.clipboard.writeText(content)
+                        toast.success('Template copied to clipboard!')
+                      } catch (err) {
+                        console.error('Failed to copy text: ', err)
+                        toast.error('Failed to copy template')
+                      }
+                    }
+
+                    const getCategoryColor = (category: string) => {
+                      switch (category) {
+                        case 'Business': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        case 'Events': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                        case 'Welcome': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        case 'Appointments': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                        default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                      }
+                    }
+
+                    return (
+                      <div key={template.id} className="p-4 rounded-lg bg-muted/50 border border-border">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-sm font-medium text-card-foreground">{template.title}</h4>
+                            <Badge
+                              variant="secondary"
+                              className={getCategoryColor(template.category)}
+                            >
+                              {template.category}
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyTemplate(template.content)}
+                            className="h-8 w-8 p-0 hover:bg-accent"
+                            title="Copy template"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {template.content}
+                        </p>
+                      </div>
+                    )
+                  })}
+
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-xs text-muted-foreground text-center">
+                      Click the copy icon to copy any template to your clipboard. Replace [PLACEHOLDERS] with actual values.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Analytics Summary */}
+            {/* <Card className="lg:col-span-3 bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-card-foreground flex items-center">
                   <TrendingUp className="mr-2 h-5 w-5" />
@@ -502,10 +655,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Global Status */}
-            <Card className="md:col-span-2 bg-card border-border">
+            {/* <Card className="md:col-span-2 bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-card-foreground flex items-center">
                   <Globe className="mr-2 h-5 w-5" />
@@ -538,7 +691,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </main>

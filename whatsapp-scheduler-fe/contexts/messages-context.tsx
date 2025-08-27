@@ -19,6 +19,18 @@ export interface ScheduledMessage {
   createdAt: Date
   sentAt?: Date
   cronTime?: string
+  // Message interaction tracking
+  deliveredAt?: Date
+  readAt?: Date
+  ackStatus?: "pending" | "server" | "device" | "read" | "played"
+  responseCount?: number
+  firstResponseAt?: Date
+  responseTimeMs?: number // Time to first response in milliseconds
+  interactions?: {
+    type: "response" | "reaction" | "mention"
+    timestamp: Date
+    fromUser: string
+  }[]
 }
 
 interface MessagesContextType {

@@ -430,6 +430,18 @@ export default function MessagesPage() {
                                 <span className="text-green-600 text-xs">Sent: {message.sentAt.toLocaleDateString()}</span>
                               </div>
                             )}
+                            {message.responseCount && message.responseCount > 0 && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <MessageSquare className="h-3 w-3 text-blue-500" />
+                                <span className="text-blue-600 text-xs">{message.responseCount} responses</span>
+                              </div>
+                            )}
+                            {message.readAt && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <Eye className="h-3 w-3 text-purple-500" />
+                                <span className="text-purple-600 text-xs">Read</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 

@@ -99,6 +99,19 @@ const initializeClient = async () => {
             currentQrCode = null; // Clear QR code when connected
         });
 
+        // Track message acknowledgments (delivery and read receipts)
+        client.on('message_ack', (message, ack) => {
+            console.log(`📬 Message ACK: ${message.id._serialized} - Status: ${ack}`);
+            updateMessageAck(message.id._serialized, ack);
+        });
+
+        // Track incoming messages for response analytics
+        client.on('message', (message) => {
+            if (!message.fromMe) {
+                trackMessageResponse(message);
+            }
+        });
+
         client.on('authenticated', () => {
             console.log('🔐 WhatsApp Client authenticated successfully');
         });
@@ -280,6 +293,94 @@ const loadScheduleData = () => {
 // Helper function to save schedule data
 const saveScheduleData = (data) => {
     fs.writeFileSync('./schedule.json', JSON.stringify(data, null, 2));
+};
+
+// Helper function to update message acknowledgment status
+const updateMessageAck = (messageId, ackStatus) => {
+    try {
+        const currentScheduleData = loadScheduleData();
+        const taskIndex = currentScheduleData.findIndex(task => task.whatsappMessageId === messageId);
+
+        if (taskIndex !== -1) {
+            const task = currentScheduleData[taskIndex];
+            const now = new Date().toISOString();
+
+            // Map ACK status codes to readable status
+            const ackStatusMap = {
+                '-1': 'error',
+                '0': 'pending',
+                '1': 'server',
+                '2': 'device',
+                '3': 'read',
+                '4': 'played'
+            };
+
+            task.ackStatus = ackStatusMap[ackStatus.toString()] || 'pending';
+
+            // Update delivery and read timestamps
+            if (ackStatus === 2 && !task.deliveredAt) {
+                task.deliveredAt = now;
+            }
+            if (ackStatus === 3 && !task.readAt) {
+                task.readAt = now;
+            }
+
+            saveScheduleData(currentScheduleData);
+            console.log(`📬 Updated ACK for message ${messageId}: ${task.ackStatus}`);
+        }
+    } catch (error) {
+        console.error('Error updating message ACK:', error.message);
+    }
+};
+
+// Helper function to track message responses
+const trackMessageResponse = (incomingMessage) => {
+    try {
+        const currentScheduleData = loadScheduleData();
+        const chatId = incomingMessage.from;
+        const messageTimestamp = new Date(incomingMessage.timestamp * 1000);
+
+        // Find recent sent messages to this chat (within last 24 hours)
+        const recentMessages = currentScheduleData.filter(task => {
+            if (task.status !== 'sent' || !task.sentAt) return false;
+
+            const sentTime = new Date(task.sentAt);
+            const timeDiff = messageTimestamp.getTime() - sentTime.getTime();
+
+            // Check if response is within 24 hours and to the same group
+            return timeDiff > 0 && timeDiff < 24 * 60 * 60 * 1000 &&
+                task.groupId && chatId.includes(task.groupId.replace('@g.us', ''));
+        });
+
+        // Update response tracking for recent messages
+        recentMessages.forEach(task => {
+            if (!task.interactions) task.interactions = [];
+            if (!task.responseCount) task.responseCount = 0;
+
+            // Add interaction
+            task.interactions.push({
+                type: 'response',
+                timestamp: messageTimestamp.toISOString(),
+                fromUser: incomingMessage.author || incomingMessage.from
+            });
+
+            task.responseCount++;
+
+            // Calculate response time for first response
+            if (!task.firstResponseAt) {
+                task.firstResponseAt = messageTimestamp.toISOString();
+                const sentTime = new Date(task.sentAt);
+                task.responseTimeMs = messageTimestamp.getTime() - sentTime.getTime();
+            }
+        });
+
+        if (recentMessages.length > 0) {
+            saveScheduleData(currentScheduleData);
+            console.log(`💬 Tracked ${recentMessages.length} message responses`);
+        }
+    } catch (error) {
+        console.error('Error tracking message response:', error.message);
+    }
 };
 
 const uploadDir = "./uploads";
@@ -652,9 +753,11 @@ app.post('/api/messages/schedule', upload.array('images', 5), async (req, res) =
 
                     if (isAdmin) {
                         try {
+                            let sentMessage = null;
+
                             // Send text message first if provided
                             if (message.trim()) {
-                                await group.sendMessage(message);
+                                sentMessage = await group.sendMessage(message);
                             }
 
                             // Send images if any
@@ -662,7 +765,9 @@ app.post('/api/messages/schedule', upload.array('images', 5), async (req, res) =
                                 for (const imagePath of imagePaths) {
                                     if (fs.existsSync(imagePath)) {
                                         const media = MessageMedia.fromFilePath(imagePath);
-                                        await group.sendMessage(media);
+                                        const imageMessage = await group.sendMessage(media);
+                                        // Use the last sent message for tracking if no text message
+                                        if (!sentMessage) sentMessage = imageMessage;
                                         // Clean up the scheduled image file
                                         fs.unlinkSync(imagePath);
                                     }
@@ -670,7 +775,19 @@ app.post('/api/messages/schedule', upload.array('images', 5), async (req, res) =
                             }
 
                             console.log(`✅ Scheduled message sent to "${groupName}" at ${new Date().toLocaleString()}${imagePaths?.length ? ` with ${imagePaths.length} image(s)` : ''}`);
-                            updateMessageStatus(newTask.id, 'sent');
+
+                            // Update message status with WhatsApp message ID for tracking
+                            const currentScheduleData = loadScheduleData();
+                            const taskIndex = currentScheduleData.findIndex(task => task.id === newTask.id);
+                            if (taskIndex !== -1) {
+                                currentScheduleData[taskIndex].status = 'sent';
+                                currentScheduleData[taskIndex].sentAt = new Date().toISOString();
+                                if (sentMessage && sentMessage.id) {
+                                    currentScheduleData[taskIndex].whatsappMessageId = sentMessage.id._serialized;
+                                    currentScheduleData[taskIndex].groupId = group.id._serialized;
+                                }
+                                saveScheduleData(currentScheduleData);
+                            }
                         } catch (sendError) {
                             if (sendError.message.includes('Session closed') || sendError.message.includes('Protocol error')) {
                                 console.log(`⚠️  WhatsApp session disconnected while sending message. Message to "${groupName}" not sent.`);
