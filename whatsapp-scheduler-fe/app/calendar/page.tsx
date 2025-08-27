@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Navigation } from "@/components/navigation"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Calendar } from "@/components/calendar"
 import { MessageSchedulePanel } from "@/components/message-schedule-panel"
 import { useWhatsApp } from "@/contexts/whatsapp-context"
@@ -12,6 +13,14 @@ import { MessageSquare } from "lucide-react"
 import { ScheduledMessage } from "@/contexts/messages-context"
 
 export default function CalendarPage() {
+  return (
+    <ProtectedRoute>
+      <CalendarContent />
+    </ProtectedRoute>
+  )
+}
+
+function CalendarContent() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [editingMessage, setEditingMessage] = useState<ScheduledMessage | null>(null)

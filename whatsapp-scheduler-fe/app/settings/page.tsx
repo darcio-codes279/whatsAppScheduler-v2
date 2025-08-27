@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Navigation } from "@/components/navigation"
-// import { ProtectedRoute } from "@/components/auth/protected-route"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { UserProfile } from "@/components/auth/user-profile"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -20,9 +20,9 @@ import { useTheme } from "next-themes"
 
 export default function SettingsPage() {
   return (
-    // <ProtectedRoute>
-    <SettingsContent />
-    // </ProtectedRoute>
+    <ProtectedRoute>
+      <SettingsContent />
+    </ProtectedRoute>
   )
 }
 

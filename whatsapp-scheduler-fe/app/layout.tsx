@@ -4,7 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-// import { AuthProvider } from "@/contexts/auth-context"
+import { AuthProvider } from "@/contexts/auth-context"
 import { WhatsAppProvider } from "@/contexts/whatsapp-context"
 import { MessagesProvider } from "@/contexts/messages-context"
 import { Toaster } from "react-hot-toast"
@@ -30,19 +30,19 @@ export default function RootLayout({
           disableTransitionOnChange={false}
           storageKey="whatsapp-scheduler-theme"
         >
-          {/* <AuthProvider> */}
-          <WhatsAppProvider>
-            <MessagesProvider>{children}</MessagesProvider>
-          </WhatsAppProvider>
-          {/* </AuthProvider> */}
+          <AuthProvider>
+            <WhatsAppProvider>
+              <MessagesProvider>{children}</MessagesProvider>
+            </WhatsAppProvider>
+          </AuthProvider>
           <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,
               style: {
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
+                background: 'hsl(var(--background))',
+                color: 'hsl(var(--foreground))',
+                border: '1px solid hsl(var(--border))',
               },
               success: {
                 iconTheme: {

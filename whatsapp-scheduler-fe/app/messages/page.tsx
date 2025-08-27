@@ -1,6 +1,7 @@
 "use client"
 
 import { Navigation } from "@/components/navigation"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useWhatsApp } from "@/contexts/whatsapp-context"
 import { useMessages } from "@/contexts/messages-context"
 import { WhatsAppQRModal } from "@/components/whatsapp-qr-modal"
@@ -33,6 +34,14 @@ import { useState, useMemo } from "react"
 // Using real messages from context
 
 export default function MessagesPage() {
+  return (
+    <ProtectedRoute>
+      <MessagesContent />
+    </ProtectedRoute>
+  )
+}
+
+function MessagesContent() {
   const { isConnected, setShowQRModal, showQRModal } = useWhatsApp()
   const { messages, isLoading, error, deleteMessage } = useMessages()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)

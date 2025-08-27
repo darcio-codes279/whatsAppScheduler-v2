@@ -1,7 +1,7 @@
 "use client"
 
 import { Navigation } from "@/components/navigation"
-// import { ProtectedRoute } from "@/components/auth/protected-route"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useWhatsApp } from "@/contexts/whatsapp-context"
 import { useMessages } from "@/contexts/messages-context"
 import { WhatsAppQRModal } from "@/components/whatsapp-qr-modal"
@@ -36,9 +36,9 @@ import type { ScheduledMessage } from "@/contexts/messages-context"
 
 export default function DashboardPage() {
   return (
-    // <ProtectedRoute>
-    <DashboardContent />
-    // </ProtectedRoute>
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   )
 }
 

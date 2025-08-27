@@ -9,7 +9,7 @@ import { Calendar, LayoutDashboard, Settings, MessageSquare, ChevronLeft, Chevro
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
-// import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/contexts/auth-context"
 
 const navigationItems = [
   {
@@ -37,7 +37,7 @@ const navigationItems = [
 export function Navigation() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
-  // const { user, profile, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth()
 
   // Load collapse state from localStorage on mount
   useEffect(() => {
